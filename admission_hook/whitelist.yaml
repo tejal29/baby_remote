@@ -1,0 +1,8 @@
+apiVersion: babyremote.com/v1alpha1
+kind: ImageNameWhitelist
+metadata:
+  name: demo-example
+spec:
+  whitelist:
+  - gcr.io/tejaldesai-personal/namespace-reservation-server
+  - nginx

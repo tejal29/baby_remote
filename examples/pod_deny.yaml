@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: poddeny
+spec:
+  containers:
+    - name: poddeny
+      image: gcr.io/tejaldesai-personal/test_image
+  imagePullSecrets:
+  - name: gcr-json-key
