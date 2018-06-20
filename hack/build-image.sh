@@ -4,7 +4,7 @@ PROJECT_ROOT=$(dirname "${BASH_SOURCE}")/..
 
 # Register function to be called on EXIT to remove generated binary.
 function cleanup {
-  rm "${PROJECT_ROOT}/imagewhitelistserver/image-whitelist-server"
+  ls "${PROJECT_ROOT}/imagewhitelistserver/image-whitelist-server"
 }
 trap cleanup EXIT
 

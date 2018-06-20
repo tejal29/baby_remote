@@ -55,8 +55,8 @@ const (
 func main() {
 	flag.StringVar(&tlsCertFile, "tls-cert-file", "/var/serving-cert/tls.crt", "TLS certificate file.")
 	flag.StringVar(&tlsKeyFile, "tls-key-private-file", "/var/serving-cert/tls.key", "TLS key file.")
-	flag.StringVar(&publicKey, "--public-key", "/var/gpg_pub//key.pub", "Public File")
-	flag.StringVar(&privateKey, "--private-key", "/var/gpg_priv/key.priv", "Private File")
+	flag.StringVar(&publicKey, "public-key", "/var/gpg_pub//key.pub", "Public File")
+	flag.StringVar(&privateKey, "private-key", "/var/gpg_priv/key.priv", "Private File")
 
 	http.HandleFunc("/", admissionReviewHandler)
 	s := http.Server{
@@ -134,6 +134,7 @@ func admissionReviewHandler(w http.ResponseWriter, r *http.Request) {
 	)
 
 	t, _ := whitelistCRDs.List(metav1.ListOptions{})
+	fmt.Println(t)
 	unstructredList := t.(*unstructured.UnstructuredList)
 	bytes, _ := unstructredList.MarshalJSON()
 	var nm ImageWhitelistCRD
