@@ -36,6 +36,7 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/dynamic"
+	corev1client "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/rest"
 )
 
@@ -163,7 +164,7 @@ func admissionReviewHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		log.Println("whitelisted")
 		// Image. Add annotation to the Pod.
-		errAnnotate := AnnotatePod(pod)
+		errAnnotate := AnnotatePod(pod, inClusterConfig)
 		if errAnnotate != nil {
 			log.Printf("Error annotating pod %s", errAnnotate)
 		}
@@ -188,7 +189,15 @@ func ReturnRequest(status *v1beta1.AdmissionResponse, w http.ResponseWriter) {
 	w.Write(data)
 }
 
-func AnnotatePod(pod v1.Pod) error {
+func AnnotatePod(pod v1.Pod, config *rest.Config) error {
+	// Create a Kubernetes core/v1 client.
+	clientV1, err := corev1client.NewForConfig(config)
+	if err != nil {
+		return (err)
+	}
+	if err != nil {
+		return err
+	}
 	// Sign the Pod spec.
 	log.Println("\n in annotate")
 	privateKeyDec, err := getPrivateKey()
@@ -204,11 +213,19 @@ func AnnotatePod(pod v1.Pod) error {
 		return jsonErr
 	}
 	attestation, err := Sign(publicKeyDec, privateKeyDec, bytes.NewReader(b))
-	annotations := pod.GetAnnotations()
+	log.Printf("Getting %s  pod %s", pod.Namespace, pod.Name)
+	oldPod, err := clientV1.Pods(pod.Namespace).Get(pod.Name, metav1.GetOptions{})
+	log.Println(err)
+	log.Printf("Old pod %s\n Pod spec %s", oldPod, pod)
+	annotations := oldPod.GetAnnotations()
+	if annotations == nil {
+		annotations = make(map[string]string)
+	}
 	annotations[ANNOTATION] = attestation
-	pod.SetAnnotations(annotations)
-	log.Printf("\n Annotation%s", annotations)
-	return nil
+	oldPod.SetAnnotations(annotations)
+	newPod, err := clientV1.Pods(pod.Namespace).Update(oldPod)
+	log.Printf("\n Annotation%s", newPod.GetAnnotations())
+	return err
 }
 
 type ImageWhitelistCRD struct {
@@ -226,8 +243,7 @@ type ImageWhiteList struct {
 }
 
 type ObjectMeta struct {
-	Name string `json:"name"`
-
+	Name      string `json:"name"`
 	Namespace string `json:"namepsace"`
 	Object    map[string]interface{}
 }

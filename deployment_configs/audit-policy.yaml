@@ -1,0 +1,6 @@
+apiVersion: audit.k8s.io/v1beta1
+rules:
+  - level: RequestResponse
+    resources:
+    - group: image-whitelist.babyremote.com
+    namespaces: ["default"]

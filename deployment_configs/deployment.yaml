@@ -6,6 +6,7 @@ items:
   kind: ValidatingWebhookConfiguration
   metadata:
     name: image-signature-webook
+    namespace: test
   webhooks:
     - name: image-whitelist.babyremote.com
       rules:
